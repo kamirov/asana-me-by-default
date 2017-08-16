@@ -1,11 +1,11 @@
-var config = require('./config');
-
+const request = require('request');
 const express = require('express');
+const config = require('./config');
 const app = express();
 
 
 // Initialization
-app.post('/init', function (req, res) {
+app.post('/init', (req, res) => {
 
     // Get list of workspaces
 
@@ -17,11 +17,9 @@ app.post('/init', function (req, res) {
 
 
 // Webhook handler
-app.post('/update/:projectId', function(req, res) {
+app.post('/update/:projectId', (req, res) => {
     
 });
 
 
-app.listen(3000, function () {
-    console.log('Listening');
-});
+app.listen(3000, () => console.log('Listening') );

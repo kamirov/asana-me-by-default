@@ -4,7 +4,8 @@
   "description": "Chrome extension that defaults new Asana tasks to the current user",
   "main": "server.js",
   "dependencies": {
-    "express": "^4.15.4"
+    "express": "^4.15.4",
+    "request": "^2.81.0"
   },
   "devDependencies": {
     "eslint": "^4.4.1"
