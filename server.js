@@ -1,3 +1,5 @@
+var config = require('./config');
+
 const express = require('express');
 const app = express();
 
@@ -20,4 +22,6 @@ app.post('/update/:projectId', function(req, res) {
 });
 
 
-app.listen(3000, function () {});
+app.listen(3000, function () {
+    console.log('Listening');
+});
