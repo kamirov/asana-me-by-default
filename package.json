@@ -1,0 +1,26 @@
+{
+  "name": "asana-me-by-default",
+  "version": "1.0.0",
+  "description": "Chrome extension that defaults new Asana tasks to the current user",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.15.4"
+  },
+  "devDependencies": {
+    "eslint": "^4.4.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kamirov/asana-me-by-default.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kamirov/asana-me-by-default/issues"
+  },
+  "homepage": "https://github.com/kamirov/asana-me-by-default#readme"
+}
