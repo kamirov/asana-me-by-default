@@ -17,12 +17,14 @@ const asanaApiUrl = 'https://app.asana.com/api/1.0';
 let urls = {
     allWorkSpaces: asanaApiUrl + '/workspaces',
     allProjects: asanaApiUrl + '/projects',
-    receiveWebhook: asanaApiUrl + '/webhooks'
+    receiveWebhook: asanaApiUrl + '/webhooks',
+    getAllWebhooks: asanaApiUrl + '/webhooks'
 };
 
 // Initialization
 app.get('/', (req, res) => {
     res.send('Here');
+    console.log('request');    
 })
 app.post('/init', (req, res) => {
 
@@ -31,7 +33,8 @@ app.post('/init', (req, res) => {
         .then((response) => response.data)
         .then((workspaces) => {
 
-            let resourceId = 402262906871702
+            console.log(workspaces);
+            let resourceId = 402262906871702;
             let webhookRequestOptions = Object.assign(requestOptions, {
                 body: {
                     data: {
@@ -85,8 +88,44 @@ app.post('/init', (req, res) => {
 
 // Webhook handler 
 app.post('/update/:projectId', (req, res) => {
-    console.log('request', req);    
+    console.log('body', req.body);
+
+    let xHookSecret = req.get('X-Hook-Secret');
+    res.set({
+        'X-Hook-Secret': xHookSecret
+    });
+
+    console.log('xHook', xHookSecret);
+
+    res.send();
 });
 
 
-app.listen(3000, () => console.log('Listening') );
+// GET all webhooks
+app.get('/webhooks', (req, res) => {
+    console.log(req.params);
+
+    // Get all workspaces
+    rp.get(urls.allWorkSpaces, requestOptions)
+        .then((response) => response.data)
+        .then((workspaces) => {
+        console.log(workspaces);
+
+        // Get all webhooks in each workspace
+            workspaces.forEach((workspace) => {
+                let webhookRequestOptions = Object.assign(requestOptions, {
+                    qs: {
+                        workspace: workspace.id,
+                    }
+                });
+
+                rp.get(urls.getAllWebhooks, webhookRequestOptions)
+                    .then((response) => {
+                        console.log(workspace.name, response.data);
+                    });
+            });
+        });
+});
+
+
+app.listen(config.PORT, () => console.log('Listening') );
