@@ -18,7 +18,8 @@ let urls = {
     allWorkSpaces: asanaApiUrl + '/workspaces',
     allProjects: asanaApiUrl + '/projects',
     receiveWebhook: asanaApiUrl + '/webhooks',
-    getAllWebhooks: asanaApiUrl + '/webhooks'
+    getWorkspaceWebhooks: asanaApiUrl + '/webhooks',
+    deleteWebhook: asanaApiUrl + '/webhooks/:webhook-id'
 };
 
 // Initialization
@@ -119,7 +120,7 @@ app.get('/webhooks', (req, res) => {
                     }
                 });
 
-                rp.get(urls.getAllWebhooks, webhookRequestOptions)
+                rp.get(urls.getWorkspaceWebhooks, webhookRequestOptions)
                     .then((response) => {
                         console.log(workspace.name, response.data);
                     });
@@ -127,5 +128,39 @@ app.get('/webhooks', (req, res) => {
         });
 });
 
+// DELETE all webhooks
+app.delete('/webhooks', (req, res) => {
+    console.log(req.params);
+    
+        // Get all workspaces
+        rp.get(urls.allWorkSpaces, requestOptions)
+            .then((response) => response.data)
+            .then((workspaces) => {
+            console.log(workspaces);
+    
+            // Get all webhooks in each workspace
+                workspaces.forEach((workspace) => {
+                    let webhookRequestOptions = Object.assign(requestOptions, {
+                        qs: {
+                            workspace: workspace.id,
+                        }
+                    });
+    
+                    rp.get(urls.getWorkspaceWebhooks, webhookRequestOptions)
+                        .then((response) => response.data)
+                        .then((webhooks) => {
+                            console.log(workspace.name, webhooks.data);
+
+                            // Delete each webhook
+                            webhooks.forEach((webhook) => {
+                                let deleteWebhookUrl = urls.deleteWebhook
+                                    .replace(':webhook-id', webhook.id)
+
+                                rp.delete(deleteWebhookUrl, requestOptions);
+                            });
+                        });
+                });
+            });
+});
 
 app.listen(config.PORT, () => console.log('Listening') );
