@@ -16,11 +16,13 @@ let requestOptions = {
 
 const asanaApiUrl = 'https://app.asana.com/api/1.0';
 let urls = {
+    me: asanaApiUrl + '/users/me',
     allWorkSpaces: asanaApiUrl + '/workspaces',
     allProjects: asanaApiUrl + '/projects',
     receiveWebhook: asanaApiUrl + '/webhooks',
     getWorkspaceWebhooks: asanaApiUrl + '/webhooks',
-    deleteWebhook: asanaApiUrl + '/webhooks/:webhook-id'
+    deleteWebhook: asanaApiUrl + '/webhooks/:webhookId',
+    updateTask: asanaApiUrl + '/tasks/:taskId'
 };
 
 
@@ -32,9 +34,17 @@ app.get('/', (req, res) => {
     console.log('request');    
 })
 
+let userId; 
 
 // Initialization
 app.post('/init', (req, res) => {
+
+    // Get user ID
+    rp.get(urls.me, requestOptions)
+        .then((response) => response.data)
+        .then((user) => {
+            userId = user.id;
+        });
 
     // Get list of workspaces
     rp.get(urls.allWorkSpaces, requestOptions)
@@ -96,7 +106,7 @@ app.post('/init', (req, res) => {
 
 // Webhook handler 
 app.post('/update/:projectId', (req, res) => {    
-    console.log(req.body);
+    // console.log(req.body);
 
     // TODO: Cache and check this
     let xHookSecret = req.get('X-Hook-Secret');
@@ -109,12 +119,28 @@ app.post('/update/:projectId', (req, res) => {
     }
 
     if (req.body && req.body.events) {
-        let newTasks = req.body.events.filter((event) => {
+        let addTaskEvents = req.body.events.filter((event) => {
             return event.type === 'task' && event.action == 'added'
         });
 
-        if (newTasks) {
-            
+        if (addTaskEvents) {
+            console.log(addTaskEvents);
+            addTaskEvents.forEach((addTaskEvent) => {
+                let updateTaskUrl = urls.updateTask
+                    .replace(':taskId', addTaskEvent.resource);
+                    
+                let updateTaskRequestOptions = Object.assign(requestOptions, {
+                    body: {
+                        data: {
+                            assignee: 'me'                        
+                        }
+                    }
+                });
+
+                console.log(updateTaskUrl, updateTaskRequestOptions)
+    
+                rp.put(updateTaskUrl, updateTaskRequestOptions);
+            });
         }
     }
 
@@ -176,7 +202,7 @@ app.delete('/webhooks', (req, res) => {
                             // Delete each webhook
                             webhooks.forEach((webhook) => {
                                 let deleteWebhookUrl = urls.deleteWebhook
-                                    .replace(':webhook-id', webhook.id)
+                                    .replace(':webhookId', webhook.id)
 
                                 rp.delete(deleteWebhookUrl, requestOptions);
                             });
