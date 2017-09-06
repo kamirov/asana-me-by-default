@@ -16,7 +16,6 @@ let requestOptions = {
 
 const asanaApiUrl = 'https://app.asana.com/api/1.0';
 let urls = {
-    me: asanaApiUrl + '/users/me',
     allWorkSpaces: asanaApiUrl + '/workspaces',
     allProjects: asanaApiUrl + '/projects',
     receiveWebhook: asanaApiUrl + '/webhooks',
@@ -34,18 +33,9 @@ app.get('/', (req, res) => {
     console.log('request');    
 })
 
-let userId; 
-
 // Initialization
 app.post('/init', (req, res) => {
-
-    // Get user ID
-    rp.get(urls.me, requestOptions)
-        .then((response) => response.data)
-        .then((user) => {
-            userId = user.id;
-        });
-
+    
     // Get list of workspaces
     rp.get(urls.allWorkSpaces, requestOptions)
         .then((response) => response.data)
