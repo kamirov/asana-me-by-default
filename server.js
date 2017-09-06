@@ -26,7 +26,6 @@ let urls = {
 
 // Middleware
 app.use( bodyParser.json() );
-app.listen(config.PORT, () => console.log('Listening') );
 
 
 // ===========
@@ -84,6 +83,8 @@ app.delete('/webhooks', (req, res) => {
         .then((workspaces) => workspaces.forEach((workspace) => deleteWorkspaceWebhooks(workspace)));
     res.send();
 });
+
+app.listen(config.PORT, () => console.log('Listening') );
 
 
 // =======
@@ -184,5 +185,6 @@ function assignTaskToMe(taskId) {
         }
     });
 
-    return rp.put(updateTaskUrl, updateTaskRequestOptions);
+    return rp.put(updateTaskUrl, updateTaskRequestOptions)
+        .catch(() => console.error('Error self-assigning task with ID: ' + taskId + ' (was it deleted?)'));
 }
