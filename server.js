@@ -4,6 +4,7 @@ const request = require('request');
 const rp = require('request-promise')
 const express = require('express');
 const config = require('./config');
+const bodyParser = require('body-parser')
 const app = express();
 
 let requestOptions = {
@@ -22,11 +23,17 @@ let urls = {
     deleteWebhook: asanaApiUrl + '/webhooks/:webhook-id'
 };
 
-// Initialization
+
+// Middleware
+app.use( bodyParser.json() );
+
 app.get('/', (req, res) => {
     res.send('Here');
     console.log('request');    
 })
+
+
+// Initialization
 app.post('/init', (req, res) => {
 
     // Get list of workspaces
@@ -34,7 +41,7 @@ app.post('/init', (req, res) => {
         .then((response) => response.data)
         .then((workspaces) => {
 
-            console.log(workspaces);
+            // console.log(workspaces);
             let resourceId = 402262906871702;
             let webhookRequestOptions = Object.assign(requestOptions, {
                 body: {
@@ -83,20 +90,33 @@ app.post('/init', (req, res) => {
             // res.json(workspaces);            
         });
         
-    // res.send(res)
+    res.send();
 });
 
 
 // Webhook handler 
-app.post('/update/:projectId', (req, res) => {
-    console.log('body', req.body);
+app.post('/update/:projectId', (req, res) => {    
+    console.log(req.body);
 
+    // TODO: Cache and check this
     let xHookSecret = req.get('X-Hook-Secret');
-    res.set({
-        'X-Hook-Secret': xHookSecret
-    });
+    
+    if (xHookSecret) {
+        res.set({
+            'X-Hook-Secret': xHookSecret
+        });
+        console.log('xHook', xHookSecret);
+    }
 
-    console.log('xHook', xHookSecret);
+    if (req.body && req.body.events) {
+        let newTasks = req.body.events.filter((event) => {
+            return event.type === 'task' && event.action == 'added'
+        });
+
+        if (newTasks) {
+            
+        }
+    }
 
     res.send();
 });
@@ -126,6 +146,8 @@ app.get('/webhooks', (req, res) => {
                     });
             });
         });
+        
+    res.send();
 });
 
 // DELETE all webhooks
@@ -161,6 +183,8 @@ app.delete('/webhooks', (req, res) => {
                         });
                 });
             });
+
+    res.send();
 });
 
 app.listen(config.PORT, () => console.log('Listening') );
