@@ -41,51 +41,33 @@ app.post('/init', (req, res) => {
         .then((response) => response.data)
         .then((workspaces) => {
 
-            // console.log(workspaces);
-            let resourceId = 402262906871702;
-            let webhookRequestOptions = Object.assign(requestOptions, {
-                body: {
-                    data: {
-                        resource: resourceId,
-                        target: config.BASE + '/update/' + resourceId                        
+            // Get list of projects in each workspace
+            workspaces.forEach((workspace) => {
+                let allProjectsRequestOptions = Object.assign({}, requestOptions, {
+                    qs: {
+                        workspace: workspace.id
                     }
-                }
-            });
+                });
 
-            // Register webhook for each project
-            // console.log(urls.receiveWebhook, webhookRequestOptions);
-            rp.post(urls.receiveWebhook, webhookRequestOptions);
+                rp.get(urls.allProjects, allProjectsRequestOptions)
+                    .then((response) => response.data)
+                    .then((projects) => {
+                        projects.forEach((project) => {
+                            let webhookRequestOptions = Object.assign({}, requestOptions, {
+                                body: {
+                                    data: {
+                                        resource: project.id,
+                                        target: config.BASE + '/update/' + project.id                        
+                                    }
+                                }
+                            });
 
-            // // Get list of projects in each workspace
-            // workspaces.forEach((workspace) => {
-            //     let allProjectsRequestOptions = Object.assign(requestOptions, {
-            //         qs: {
-            //             workspace: workspace.id
-            //         }
-            //     });
-
-            //     // rp.get(urls.allProjects, allProjectsRequestOptions)
-            //     //     .then((projects) => {
-            //     //         // console.log(projects);
-            //     //         // res.send(projects);
-
-            //     //         // projects.forEach((project) => {
-            //     //         //     let webhookRequestOptions = Object.assign(requestOptions, {
-            //     //         //         qs: {
-            //     //         //             resource: project.id
-            //     //         //         },
-            //     //         //         target: config.BASE + '/update/' + project.id
-            //     //         //     });
-
-            //     //         //     // Register webhook for each project
-            //     //         //     // rp.post(urls.receiveWebhook, webhookRequestOptions)
-            //     //         //     //     .then(() => {
-                                    
-            //     //         //     //     });
-            //     //         // });
+                            // Register webhook for each project
+                            rp.post(urls.receiveWebhook, webhookRequestOptions);
+                        });
                         
-            //     //     })
-            // });
+                    })
+            });
 
             // res.json(workspaces);            
         });
@@ -96,8 +78,6 @@ app.post('/init', (req, res) => {
 
 // Webhook handler 
 app.post('/update/:projectId', (req, res) => {    
-    // console.log(req.body);
-
     // TODO: Cache and check this
     let xHookSecret = req.get('X-Hook-Secret');
     
@@ -119,7 +99,7 @@ app.post('/update/:projectId', (req, res) => {
                 let updateTaskUrl = urls.updateTask
                     .replace(':taskId', addTaskEvent.resource);
                     
-                let updateTaskRequestOptions = Object.assign(requestOptions, {
+                let updateTaskRequestOptions = Object.assign({}, requestOptions, {
                     body: {
                         data: {
                             assignee: 'me'                        
@@ -150,7 +130,7 @@ app.get('/webhooks', (req, res) => {
 
         // Get all webhooks in each workspace
             workspaces.forEach((workspace) => {
-                let webhookRequestOptions = Object.assign(requestOptions, {
+                let webhookRequestOptions = Object.assign({}, requestOptions, {
                     qs: {
                         workspace: workspace.id,
                     }
@@ -178,7 +158,7 @@ app.delete('/webhooks', (req, res) => {
     
             // Get all webhooks in each workspace
                 workspaces.forEach((workspace) => {
-                    let webhookRequestOptions = Object.assign(requestOptions, {
+                    let webhookRequestOptions = Object.assign({}, requestOptions, {
                         qs: {
                             workspace: workspace.id,
                         }
