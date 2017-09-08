@@ -6,9 +6,15 @@ I admit this was just an excuse to play with express and webhooks.
 
 ## Configuration
 
-1. Run `cp config.example.js config.js` to create a config file.
+1. Install dependencies and copy config file:
+    ```
+    npm install
+    cp config.example.js config.js
+    ```
+
 1. Fill in `PERSONAL_ACCESS_TOKEN` in the config file. 
-    - To get an Asana Personal Access Token, log in to your Asana account, click on "My Profile Settings" » "Apps" » "Manage Developer Apps" » "+ Create New Personal Access Token". Fill in any description, then copy and paste this token into the config file (procedure works as of September 2017)
+    - To get an Asana Personal Access Token, log in to your Asana account, click on your icon in the top-right corner, then "My Profile Settings" » "Apps" » "Manage Developer Apps" » "+ Create New Personal Access Token". Fill in any description, then copy and paste this token into the config file (procedure works as of September 2017)
+
 1. By default, the server listens on port 3000. You can change this in the config file.
 
 ## Running
