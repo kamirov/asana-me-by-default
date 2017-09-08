@@ -11,7 +11,7 @@ let requestOptions = {
     headers: {
         'Authorization': 'Bearer ' + config.PERSONAL_ACCESS_TOKEN
     }, 
-    json: true     
+    json: true
 };
 
 const asanaApiUrl = 'https://app.asana.com/api/1.0';
@@ -24,6 +24,8 @@ let urls = {
     updateTask: asanaApiUrl + '/tasks/:taskId'
 };
 
+let base;
+
 // Middleware
 app.use( bodyParser.json() );
 
@@ -31,22 +33,6 @@ app.use( bodyParser.json() );
 // ===========
 // Controllers
 // ===========
-
-// Initialization
-app.post('/init', (req, res) => {
-    rp.get(urls.allWorkSpaces, requestOptions)
-        .then((response) => response.data)
-        .then((workspaces) => {
-            workspaces.forEach((workspace) => {
-                getWorkspaceProjects(workspace)
-                    .then(getResponseData)
-                    .then((projects) => projects.forEach((project) => initProjectWebhook(project)));
-            });
-        });
-        
-    res.send();
-});
-
 
 // Webhook handler
 app.post('/update/:projectId', (req, res) => {    
@@ -84,7 +70,7 @@ app.delete('/webhooks', (req, res) => {
     res.send();
 });
 
-app.listen(config.PORT, () => console.log('Listening') );
+
 
 // =======
 // Helpers
@@ -105,6 +91,17 @@ function performHandshake(req, res) {
     }
 }
 
+function initWebhooks() {
+    rp.get(urls.allWorkSpaces, requestOptions)
+    .then((response) => response.data)
+    .then((workspaces) => {
+        workspaces.forEach((workspace) => {
+            getWorkspaceProjects(workspace)
+                .then(getResponseData)
+                .then((projects) => projects.forEach((project) => initProjectWebhook(project)));
+        });
+    });
+}
 
 function initProjectWebhook(project) {
     console.log('Initiating webhook for project ' + project.name);    
@@ -112,7 +109,7 @@ function initProjectWebhook(project) {
         body: {
             data: {
                 resource: project.id,
-                target: config.BASE + '/update/' + project.id                        
+                target: base + '/update/' + project.id                        
             }
         }
     });
@@ -187,3 +184,18 @@ function assignTaskToMe(taskId) {
     return rp.put(updateTaskUrl, updateTaskRequestOptions)
         .catch(() => console.error('Error self-assigning task with ID: ' + taskId + ' (was it deleted?)'));
 }
+
+
+// ======
+// Module
+// ======
+
+module.exports = {
+    setBase: function(tunnel) {
+        base = tunnel;
+    },
+    init: function() {
+        app.listen(config.PORT, () => console.log('Listening on port ' + config.PORT) );
+        initWebhooks();
+    }    
+};
