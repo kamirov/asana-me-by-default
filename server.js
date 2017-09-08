@@ -84,7 +84,7 @@ function getResponseData(response) {
 function performHandshake(req, res) {
     let xHookSecret = req.get('X-Hook-Secret');
     if (xHookSecret) {
-        console.log('Shaking hands');
+        // console.log('Shaking hands');
         res.set({
             'X-Hook-Secret': xHookSecret
         });
@@ -195,7 +195,19 @@ module.exports = {
         base = tunnel;
     },
     init: function() {
-        app.listen(config.PORT, () => console.log('Listening on port ' + config.PORT) );
-        initWebhooks();
+        app
+            .listen(config.PORT, () => {
+                console.log('Listening on port ' + config.PORT)
+                initWebhooks();
+            })
+            .on('error', (err) => {
+                if (err.code === 'EADDRINUSE') {
+                    console.error('Couldn\'t create server. Port ' + config.PORT + ' is unavailable. Is another process using it?');
+                } else {
+                    console.error('Unknown error. Please contact the script author.');
+                }
+
+                process.exit();                
+            });
     }    
 };
