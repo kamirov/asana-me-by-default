@@ -4,6 +4,7 @@ config.js
 logs
 *.log
 npm-debug.log*
+nohup.out
 
 # Runtime data
 pids
