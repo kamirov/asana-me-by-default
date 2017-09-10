@@ -176,7 +176,8 @@ function assignTaskToMe(taskId) {
     let updateTaskRequestOptions = Object.assign({}, requestOptions, {
         body: {
             data: {
-                assignee: 'me'                        
+                assignee: 'me',
+                assignee_status: config.ASSIGNEE_STATUS                        
             }
         }
     });
