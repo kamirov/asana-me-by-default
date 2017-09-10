@@ -21,7 +21,8 @@ let urls = {
     receiveWebhook: asanaApiUrl + '/webhooks',
     getWorkspaceWebhooks: asanaApiUrl + '/webhooks',
     deleteWebhook: asanaApiUrl + '/webhooks/:webhookId',
-    updateTask: asanaApiUrl + '/tasks/:taskId'
+    updateTask: asanaApiUrl + '/tasks/:taskId',
+    getTask: asanaApiUrl + '/tasks/:taskId',
 };
 
 let base;
@@ -44,7 +45,21 @@ app.post('/update/:projectId', (req, res) => {
         });
 
         if (addTaskEvents.length) {
-            addTaskEvents.forEach((addTaskEvent) => assignTaskToMe(addTaskEvent.resource));
+            addTaskEvents.forEach((addTaskEvent) => {
+                if (config.IGNORE_HEADING_TASKS) {
+                    getTask(addTaskEvent.resource)
+                        .then(getResponseData)
+                        .then((task) => {
+                            if (task.name.endsWith(':')) {
+                                console.log('Ignoring task with ID: ' + task.id + ' (heading task)');
+                            } else {                            
+                                return assignTaskToMe(task.id);                                
+                            }
+                        })
+                } else {
+                    return assignTaskToMe(addTaskEvent.resource);
+                }
+            });
         }
     }
 
@@ -164,6 +179,17 @@ function deleteWebhooks(webhooks) {
 
         rp.delete(deleteWebhookUrl, requestOptions);
     });
+}
+
+
+function getTask(taskId) {
+    console.log('Getting task with ID: ' + taskId);
+
+    let getTaskUrl = urls.getTask
+        .replace(':taskId', taskId);
+
+    return rp.get(getTaskUrl, requestOptions)
+        .catch(() => console.error('Error getting task with ID: ' + taskId + ' (was it deleted?)'));
 }
 
 
